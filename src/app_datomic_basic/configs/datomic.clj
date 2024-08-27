@@ -1,66 +1,38 @@
 (ns app-datomic-basic.configs.datomic
-  (:require [datomic.api :as d]))
+  (:require [datomic.api :as d]
+            [app-datomic-basic.gateways.datomic.documents.product :as product-document]))
 
 
 (def db-uri "datomic:sql://?jdbc:postgresql://localhost:5432/my-datomic?user=datomic-user&password=unsafe")
 
-(d/create-database db-uri)
+(defonce conn (d/connect db-uri))
 
-(def conn (d/connect db-uri))
-
-@(d/transact conn [{:db/doc "Hello world"}])
-
-@(d/transact conn [{:db/ident :movie/title
-                    :db/valueType :db.type/string
-                    :db/cardinality :db.cardinality/one
-                    :db/doc "The title of the movie"}
-
-                   {:db/ident :movie/genre
-                    :db/valueType :db.type/string
-                    :db/cardinality :db.cardinality/one
-                    :db/doc "The genre of the movie"}
-
-                   {:db/ident :movie/release-year
-                    :db/valueType :db.type/long
-                    :db/cardinality :db.cardinality/one
-                    :db/doc "The year the movie was released in theaters"}])
-
-@(d/transact conn [{:movie/title "The Goonies"
-                    :movie/genre "action/adventure"
-                    :movie/release-year 1985}
-                   {:movie/title "Commando"
-                    :movie/genre "action/adventure"
-                    :movie/release-year 1985}
-                   {:movie/title "Repo Man"
-                    :movie/genre "punk dystopia"
-                    :movie/release-year 1984}])
-
-(def db (d/db conn))
+(defonce db (d/db conn))
 
 
-
-;(defn test-datomic []
-;  (d/q '[:find ?e ?movie-title
-;         :where [?e :movie/title ?movie-title]]
-;       db))
+(def apply-schemas []
+  @(d/transact conn product-document/schema))
 
 
-(def conn (d/connect db-uri))
-
-(def db (d/db conn))
+(defn open-connection []
+  (d/create-database db-uri)
+  conn)
 
 
 
 
-(defn test-datomic []
-  (d/q '[:find ?id ?type ?gender
-         :in $ ?name
-         :where
-         [?e :artist/name ?name]
-         [?e :artist/gid ?id]
-         [?e :artist/type ?teid]
-         [?teid :db/ident ?type]
-         [?e :artist/gender ?geid]
-         [?geid :db/ident ?gender]]
-       db
-       "Jimi Hendrix"))
+; Produtos
+; ?id
+; nome String 1 ==> Computador Novo
+; slug String 1 ==> /computador_novo
+; preço ponto flutuante 1 ==> 3500.10
+
+
+; id_entidade atributo valor
+; 15 :nome Computador Novo
+; 15 :slug /computador_novo
+; 15 :preço 3500.10
+
+; 17 :nome Telefone Caro
+; 17 :slug /telefone
+; 17 :preço 8888.88
