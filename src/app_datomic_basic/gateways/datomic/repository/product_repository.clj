@@ -11,6 +11,7 @@
                               :product/name  (product-document/get-name product-document)
                               :product/slug  (product-document/get-slug product-document)
                               :product/price (product-document/get-price product-document)}])]
+    (println "AQUI      ==================================>" result)
     result
     ))
 

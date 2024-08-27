@@ -1,6 +1,6 @@
 (ns app-datomic-basic.core
   (:require
-   [app-datomic-basic.configs.datomic :as db]
+   [app-datomic-basic.configs.datomic :as datomic-config]
    [app-datomic-basic.gateways.ws.routes.app-routes :as app-routes]
    [app-datomic-basic.gateways.ws.middlewares.custom-exception-handler :as custom-exception-handler]
    [compojure.core :refer :all]
@@ -18,6 +18,7 @@
 
 (defn -main [& args]
   (try
-    (run-jetty app {:port 8080 :join? false})
+    (datomic-config/apply-schemas)
+    (run-jetty app {:port 8081 :join? false})
     (catch Exception e
       (println (.getMessage e)))))
