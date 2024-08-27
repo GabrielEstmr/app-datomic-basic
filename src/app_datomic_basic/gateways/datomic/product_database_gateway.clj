@@ -3,7 +3,6 @@
             [app-datomic-basic.gateways.datomic.repository.product-repository :as product-repository]
             [app-datomic-basic.gateways.datomic.documents.product :as product-document]))
 
-
 (defn save-impl [product]
   (let [product-doc       (product-document/create-product-document product)
         saved-account-doc (product-repository/save product-doc)]
