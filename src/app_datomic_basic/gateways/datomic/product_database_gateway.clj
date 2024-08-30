@@ -5,9 +5,9 @@
 
 (defn save-impl [product]
   (let [product-doc       (product-document/create-product-document product)
-        saved-account-doc (product-repository/save product-doc)]
-    (when saved-account-doc
-      (product-document/to-domain saved-account-doc))))
+        saved-product-doc (product-repository/save product-doc)]
+    (when saved-product-doc
+      (product-document/to-domain saved-product-doc))))
 
 (defn find-product-by-name-impl [id]
   (let [account-document (product-repository/find-product-by-name id)]
@@ -18,5 +18,5 @@
   product-database-gateway/ProductDatabaseGateway
   (save [_ account]
     (save-impl account))
-  (find-product-by-name [_ id]
+  (findByName [_ id]
     (find-product-by-name-impl id)))

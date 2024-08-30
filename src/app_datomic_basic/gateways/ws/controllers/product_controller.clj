@@ -9,10 +9,18 @@
 (defn create-product-handler [request]
   (let [usecaseCreateProduct (:usecaseCreateProduct (usecase-beans/get-beans))
         body                 (slurp (:body request))
-        product-request      (json/read-str body :key-fn keyword)]
-    (let [created-product (usecaseCreateProduct (product-request/to-domain product-request))
-          response-body   (json/write-str (product-response/create-product-response created-product))]
-      (println "OK")
-      (-> (response/response response-body)
-          (response/status 201)
-          (response/content-type "application/json")))))
+        product-request      (json/read-str body :key-fn keyword)
+        created-product (usecaseCreateProduct (product-request/to-domain product-request))
+        response-body   (json/write-str (product-response/create-product-response created-product))]
+    (println "OK")
+    (-> (response/response response-body)
+        (response/status 201)
+        (response/content-type "application/json"))))
+
+(defn find-product-by-name-handler [id]
+  (let [usecaseFindProductByNameProduct (:usecaseFindProductByNameProduct (usecase-beans/get-beans))
+        product (usecaseFindProductByNameProduct id)
+        response-body (json/write-str (product-response/create-product-response product))]
+    (-> (response/response response-body)
+        (response/status 200)
+        (response/content-type "application/json"))))

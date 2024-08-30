@@ -16,8 +16,10 @@
     ))
 
 (defn find-product-by-name [name]
-  (d/q '[:find ?e
+  (d/q '[:find ?name ?slug ?price
          :in $ ?name
          :where
-         [?e :product/name ?name]]
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
        (d/db datomic-config/conn) name))

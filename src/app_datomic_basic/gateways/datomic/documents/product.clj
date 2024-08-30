@@ -70,13 +70,10 @@
      )))
 
 (defn to-domain [product-document]
-  (let [{:keys [name
-                slug
-                price]} product-document]
-    (domain-product/create-product-all-args
-     name
-     slug
-     price)))
+  (domain-product/create-product-all-args
+   ((first product-document) 0)
+   ((first product-document) 1)
+   ((first product-document) 2)))
 
 (defn get-name [product-document]
   (when product-document
