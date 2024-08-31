@@ -1,7 +1,8 @@
 (ns app-datomic-basic.gateways.datomic.repository.product-repository
   (:require
    [datomic.api :as d]
-   [app-datomic-basic.configs.datomic :as datomic-config]))
+   [app-datomic-basic.configs.datomic :as datomic-config]
+   [app-datomic-basic.gateways.datomic.documents.product :as documents.product]))
 
 
 ;; IMPORTANT: Its possible to add only one datom (e. g.: only :product/name)
@@ -42,3 +43,35 @@
          [?e :product/slug ?slug]
          [?e :product/price ?price]]
        (d/db (datomic-config/get-db)) name))
+
+(defn find-by-id [id]
+  (d/q '[:find ?name ?slug ?price
+         :in $ ?id
+         :where
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]
+         [(= ?e ?id)]]
+       (d/db (datomic-config/get-db)) id))
+
+;(defn find-by-id [id]
+;  (let [db (d/db (datomic-config/get-db))
+;        datoms (d/datoms db :eavt id)]
+;    datoms))
+
+(defn update [product-document]
+  (let [temp-id             #db/id[:db.part/user]
+        product-document-id (assoc product-document :db/id (documents.product/get-id product-document))
+        result              @(d/transact (datomic-config/get-db) [product-document-id])
+        resolved-id         (d/resolve-tempid (d/db (datomic-config/get-db)) (:tempids result) temp-id)]
+    (assoc product-document :product/id resolved-id)))
+
+(defn update-product-name [product-id product-name]
+  (let [result @(d/transact (datomic-config/get-db) [ [:db/add product-id :product/name product-name]])]
+    product-name))
+
+
+;(defn update [product-id updated-data]
+;  (let [product-document (assoc updated-data :db/id product-id)
+;        result           @(d/transact (datomic-config/get-db) [product-document])]
+;    result))

@@ -3,4 +3,6 @@
 
 (defprotocol ProductDatabaseGateway
   (save [this product])
-  (findByName [this name]))
+  (update [this product])
+  (findByName [this name])
+  (findById [this name]))
