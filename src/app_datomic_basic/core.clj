@@ -18,7 +18,7 @@
 
 (defn -main [& args]
   (try
-    (datomic-config/apply-schemas)
+    (datomic-config/init-datomic)
     (run-jetty app {:port 8081 :join? false})
     (catch Exception e
       (println (.getMessage e)))))

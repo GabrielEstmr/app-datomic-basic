@@ -1,8 +1,7 @@
 (ns app-datomic-basic.gateways.datomic.repository.product-repository
   (:require
    [datomic.api :as d]
-   [app-datomic-basic.configs.datomic :as datomic-config]
-   [app-datomic-basic.gateways.datomic.documents.product :as product-document]))
+   [app-datomic-basic.configs.datomic :as datomic-config]))
 
 
 ;; IMPORTANT: Its possible to add only one datom (e. g.: only :product/name)
@@ -24,21 +23,16 @@
 ; WITH @: SYNC
 ; WITHOUT @: ASYNC (like all futures in clojure)
 
-(defn save [product-document]
-  (let [temp-id #db/id[:db.part/user]
-        result @(d/transact datomic-config/conn
-                            [{:db/id         temp-id
-                              :product/name  (product-document/get-name product-document)
-                              :product/slug  (product-document/get-slug product-document)
-                              :product/price (product-document/get-price product-document)}])
-        resolved-id (d/resolve-tempid (d/db datomic-config/conn) (:tempids result) temp-id) ; considering partition, etc
-        ;temp-ids-v1 (val (first (:tempids result)))
-        ]
+; getting IDS:
+; considering partition, etc. other way: not considering partition ;temp-ids-v1 (val (first (:tempids result)))
 
-    (println "Transaction Result:" result)
-    (println "Entity ID:" resolved-id)
-    (println "Tempids Map:" (:tempids result))
-    resolved-id))
+
+(defn save [product-document]
+  (let [temp-id             #db/id[:db.part/user]
+        product-document-id (assoc product-document :db/id temp-id)
+        result              @(d/transact (datomic-config/get-db) [product-document-id])
+        resolved-id         (d/resolve-tempid (d/db (datomic-config/get-db)) (:tempids result) temp-id)]
+    (assoc product-document :product/id resolved-id)))
 
 (defn find-product-by-name [name]
   (d/q '[:find ?name ?slug ?price
@@ -47,4 +41,4 @@
          [?e :product/name ?name]
          [?e :product/slug ?slug]
          [?e :product/price ?price]]
-       (d/db datomic-config/conn) name))
+       (d/db (datomic-config/get-db)) name))

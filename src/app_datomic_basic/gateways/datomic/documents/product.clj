@@ -1,5 +1,5 @@
 (ns app-datomic-basic.gateways.datomic.documents.product
-  (:require [datomic.api :as d]
+  (:require
             [app-datomic-basic.utils.map-utils :as map-utils]
             [app-datomic-basic.domain.product :as domain-product]))
 
@@ -7,7 +7,6 @@
   [{:db/ident       :product/name
     :db/valueType   :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/unique      :db.unique/identity
     :db/doc         "The name of the product"}
 
    {:db/ident       :product/slug
@@ -32,12 +31,6 @@
   (let [{:keys [id name slug price]} product]
     (create-product-document-all-args id name slug price)))
 
-(defn to-domain [product-document]
-  (domain-product/create-product-all-args
-   ((first product-document) 0)
-   ((first product-document) 1)
-   ((first product-document) 2)))
-
 (defn get-id [product-document]
   (map-utils/get-when product-document :product/id))
 
@@ -49,3 +42,10 @@
 
 (defn get-price [product-document]
   (map-utils/get-when product-document :product/price))
+
+(defn to-domain [product-document]
+  (domain-product/create-product-all-args
+   (get-id product-document)
+   (get-name product-document)
+   (get-slug product-document)
+   (get-price product-document)))

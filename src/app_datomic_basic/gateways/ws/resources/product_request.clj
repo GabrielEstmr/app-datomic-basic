@@ -3,4 +3,4 @@
 
 (defn to-domain [product-request]
   (let [{:keys [name slug price]} product-request]
-    (product/create-product-all-args name, slug, price)))
+    (product/create-product-all-args nil name, slug, price)))
