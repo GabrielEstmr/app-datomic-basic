@@ -44,34 +44,40 @@
          [?e :product/price ?price]]
        (d/db (datomic-config/get-db)) name))
 
+; Reference by key
 (defn find-by-id [id]
-  (d/q '[:find ?name ?slug ?price
-         :in $ ?id
-         :where
-         [?e :product/name ?name]
-         [?e :product/slug ?slug]
-         [?e :product/price ?price]
-         [(= ?e ?id)]]
-       (d/db (datomic-config/get-db)) id))
+  (as-> id $
+        (d/q '[:find (pull ?e [:product/name :product/slug :product/price])
+               :in $ ?id
+               :where
+               [?e :product/name]
+               [(= ?e ?id)]]
+             (d/db (datomic-config/get-db)) $)
+        (first $)
+        (first $)
+        (assoc $ :product/id id)))
 
-;(defn find-by-id [id]
-;  (let [db (d/db (datomic-config/get-db))
-;        datoms (d/datoms db :eavt id)]
-;    datoms))
-
+; Updates: we must use db/add
 (defn update [product-document]
-  (let [temp-id             #db/id[:db.part/user]
-        product-document-id (assoc product-document :db/id (documents.product/get-id product-document))
-        result              @(d/transact (datomic-config/get-db) [product-document-id])
-        resolved-id         (d/resolve-tempid (d/db (datomic-config/get-db)) (:tempids result) temp-id)]
-    (assoc product-document :product/id resolved-id)))
+  (let [id (get product-document :product/id)]
+    @(d/transact
+      (datomic-config/get-db)
+      [[:db/add id :product/name (documents.product/get-name product-document)]
+       [:db/add id :product/slug (documents.product/get-slug product-document)]
+       [:db/add id :product/price (documents.product/get-price product-document)]
+       ])
+    product-document))
 
-(defn update-product-name [product-id product-name]
-  (let [result @(d/transact (datomic-config/get-db) [ [:db/add product-id :product/name product-name]])]
-    product-name))
 
 
-;(defn update [product-id updated-data]
-;  (let [product-document (assoc updated-data :db/id product-id)
-;        result           @(d/transact (datomic-config/get-db) [product-document])]
+;(defn query-with-pagination
+;  [db {:keys [offset limit] :or {offset 0 limit 10}}]
+;  (let [query '[:find ?e ?name ?price
+;                :in $ ?offset ?limit
+;                :where
+;                [?e :product/name ?name]
+;                [?e :product/price ?price]]
+;        result (->> (d/q query db offset limit)
+;                    (drop offset)
+;                    (take limit))]
 ;    result))

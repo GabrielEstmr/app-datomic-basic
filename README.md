@@ -1,44 +1,61 @@
-# app-datomic-basic
+;; IMPORTANT: Its possible to add only one datom (e. g.: only :product/name)
+;(defn save-product-only-name [product-document]
+;  (let [result @(d/transact datomic-config/conn
+;                            [{:db/id #db/id[:db.part/user]
+;                              :product/name  (product-document/get-name product-document)}])]
+; result))
+;
+;; In this case: error: if a datom is not part of an entity, its only not add it in the save operation
+;(defn save-product-only-name-error [product-document]
+;  (let [result @(d/transact datomic-config/conn
+;                            [{:db/id #db/id[:db.part/user]
+;                              :product/name  (product-document/get-name product-document)
+;                              :product/slug nil}])]
 
-FIXME: description
+; IMPORTANT: d/transact is an async operation in clojure
+; WITH @: SYNC
+; WITHOUT @: ASYNC (like all futures in clojure)
 
-## Installation
+; getting IDS:
+; considering partition, etc. other way: not considering partition ;temp-ids-v1 (val (first (:tempids result)))
 
-Download from http://example.com/FIXME.
+## Transactions in Datomic:
 
-## Usage
+Vamos dizer que temos o seguinte código:
 
-FIXME: explanation
+```clojure
 
-    $ java -jar app-datomic-basic-0.1.0-standalone.jar [args]
+(let [computador     (model/novo-produto "Computador Novo", "/computador_novo", 2500.10M)
+      celular        (model/novo-produto "Celular Caro", "/celular", 888888.10M)
+      calculadora    {:produto/nome "Calculadora com 4 operações"}
+      celular-barato (model/novo-produto "Celular Barato", "/celular-barato", nil)]
+  (d/transact conn [computador celular calculadora celular-barato]))
+```
 
-## Options
+Estamos transacionando para o Datomic 4 produtos ao mesmo tempo.
 
-FIXME: listing of options this app accepts.
+Note que for o celular-barato está com o preço nulo.
 
-## Examples
+Ao executarmos o código anterior, obtemos o seguinte erro:
 
-...
+Execution error (Exceptions$IllegalArgumentExceptionInfo) at datomic.error/arg (error.clj:79).
+:db.error/nil-value Nil is not a legal valueCopiar código
+O Datomic não aceita valores nulos. Por isso obtivemos um erro.
 
-### Bugs
+OK, mas apenas o último produto, o celular-barato, teve um valor nulo. O que será que aconteceu com os outros produtos?
+Foram inseridos ou não?
 
-...
+Considerando que o Datomic não tinha nenhum produto antes dessa transação, podemos verificar os produtos depois da
+execução com a consulta:
 
-### Any Other Sections
-### That You Think
-### Might be Useful
+(pprint (db/todos-os-produtos)(d/db conn))Copiar código
+O resultado seria um conjunto vazio:
 
-## License
+#{}Copiar código
+Ou seja, ao transacionarmos 4 produtos ao mesmo tempo, se ocorrer algum erro no último, a transação toda é cancelada.
 
-Copyright © 2024 FIXME
+Essa característica transacional de fazer "ou tudo ou nada" é chamada de Atomicidade: se uma parte da transação falhar,
+a transação toda falha e nenhuma mudança é feita no BD.
 
-This program and the accompanying materials are made available under the
-terms of the Eclipse Public License 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0.
 
-This Source Code may also be made available under the following Secondary
-Licenses when the conditions for such availability set forth in the Eclipse
-Public License, v. 2.0 are satisfied: GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your
-option) any later version, with the GNU Classpath Exception which is available
-at https://www.gnu.org/software/classpath/license.html.
+(IMPORTANT: NÂO TEM ORDEM)

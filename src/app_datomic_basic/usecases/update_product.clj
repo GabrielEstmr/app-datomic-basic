@@ -5,6 +5,6 @@
 (defn execute [productDatabaseGateway]
   (fn [product]
     (let [find-product-by-id-fn (find-product-by-id/execute productDatabaseGateway)
-          product               (find-product-by-id-fn (product/get-id product))
+          product-found               (find-product-by-id-fn (product/get-id product))
           updated-product       (.update productDatabaseGateway product)]
       updated-product)))
