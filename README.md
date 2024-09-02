@@ -128,3 +128,35 @@ Must use db/add by attributes
 
 Using UUID as attribute of an entity, we can use this property to update the datons of a property since a db/transact
 with the same UUID lead to retract+ add the values of the others attributes
+
+### Nested Attributes
+
+- Create category atomically with product
+
+```clojure
+(defn save [product-document]
+  (let [product-document-id (add-product-id product-document)]
+    @(d/transact (datomic-config/get-db) [{:product/id       "uuid"
+                                           :product/name     "uuid"
+                                           :product/slug     "uuid"
+                                           :product/price    123
+                                           :product/category {:category/id   "uuid"
+                                                              :category/name "name"}
+                                           }])
+    product-document-id))
+```
+
+- Create product with reference to already created category
+  - Note that is different to add uuid directly to :product/category
+
+```clojure
+(defn save [product-document]
+  (let [product-document-id (add-product-id product-document)]
+    @(d/transact (datomic-config/get-db) [{:product/id       "uuid"
+                                           :product/name     "uuid"
+                                           :product/slug     "uuid"
+                                           :product/price    123
+                                           :product/category {:category/id "uuid"}
+                                           }])
+    product-document-id))
+```

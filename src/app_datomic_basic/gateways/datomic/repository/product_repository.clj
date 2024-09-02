@@ -40,11 +40,32 @@
 
 ;(d/pull db '[:usuario/data-de-nascimento :usuario/cidade] [:usuario/id ?usuario_id])
 
- ;for other attributes as `:db/unique      :db.unique/identity`
+; ;for other attributes as `:db/unique      :db.unique/identity`
+;(defn find-by-product-id [product-id]
+;  (let [response (d/pull (d/db (datomic-config/get-db)) '[*] [:product/id product-id])]
+;    (println response)
+;    response))
+
+;(defn find-by-product-id [product-id]
+;  (let [response (d/pull (d/db (datomic-config/get-db))
+;                         '[* {:product/category-id [:category/name]}]
+;                         [:product/id product-id])]
+;    (println response)
+;    response))
+
 (defn find-by-product-id [product-id]
-  (let [response (d/pull (d/db (datomic-config/get-db)) '[*] [:product/id product-id])]
+  (let [response (d/pull (d/db (datomic-config/get-db))
+                         '[*
+                           {:product/category-id [:category/name]}]
+                         [:product/id product-id])]
     (println response)
     response))
+
+(defn find-by-product-id [id]
+  (let [response (d/q '[:find (pull ?product [* {:product/category [*]}])
+                        :in $ ?id
+                        :where [?product :product/id ?id]] (d/db (datomic-config/get-db)) id)]
+    (ffirst response)))
 
 ;; nao pode assoc
 ;(defn find-by-product-id [id]
@@ -90,3 +111,16 @@
 (defn update [product-document]
   @(d/transact (datomic-config/get-db) [product-document])
   product-document)
+
+
+;[:find ?product-name ?category ?category-name
+; :where
+; [?p :product/id ?id]
+; [?p :product/name ?product-name]
+; [?p :product/category ?category]
+; [?c :category/id ?category]
+; [?c :category/name ?category-name]
+; [(= ?id #uuid "9b280d6a-a34a-485b-b872-529640a4463b")]]
+
+
+; find-all-product-by-category

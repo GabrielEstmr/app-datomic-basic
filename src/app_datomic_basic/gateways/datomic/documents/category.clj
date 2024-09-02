@@ -16,15 +16,18 @@
     :db/cardinality :db.cardinality/one
     :db/doc         "The name of the product"}])
 
-(defn create-category-document-all-args [id name]
-  (let [category {}]
-    (as-> category $
-          (map-utils/add-if-not-nil $ :category/id (uuid-utils/string-to-uuid id))
-          (map-utils/add-if-not-nil $ :category/name name))))
+(defn create-category-document-args
+  ([id]
+   (create-category-document-args id nil))
+  ([id name]
+   (let [category {}]
+     (as-> category $
+           (map-utils/add-if-not-nil $ :category/id (uuid-utils/string-to-uuid id))
+           (map-utils/add-if-not-nil $ :category/name name)))))
 
 (defn create-category-document [category]
   (let [{:keys [id name]} category]
-    (create-category-document-all-args id name)))
+    (create-category-document-args id name)))
 
 (defn get-id [category-document]
   (map-utils/get-when category-document :category/id))

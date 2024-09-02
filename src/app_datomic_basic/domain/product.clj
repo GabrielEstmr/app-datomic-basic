@@ -1,12 +1,13 @@
 (ns app-datomic-basic.domain.product
   (:require [app-datomic-basic.utils.map-utils :as map-utils]))
 
-(defn create-product-all-args [id name slug price keywords]
+(defn create-product-all-args [id name slug price keywords category]
   {:id       id
    :name     name
    :slug     slug
    :price    price
-   :keywords keywords})
+   :keywords keywords
+   :category category})
 
 (defn get-id [product]
   (map-utils/get-when product :id))
@@ -22,3 +23,6 @@
 
 (defn get-keywords [product]
   (map-utils/get-when product :keywords))
+
+(defn get-category [product]
+  (map-utils/get-when product :category))
