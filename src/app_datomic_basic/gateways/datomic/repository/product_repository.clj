@@ -1,39 +1,18 @@
 (ns app-datomic-basic.gateways.datomic.repository.product-repository
   (:require
    [datomic.api :as d]
+   [app-datomic-basic.utils.map-utils :as map-utils]
    [app-datomic-basic.configs.datomic :as datomic-config]
-   [app-datomic-basic.gateways.datomic.documents.product :as documents.product]))
+   [app-datomic-basic.gateways.datomic.documents.product :as documents.product])
+  (:import [java.util UUID]))
 
-
-;; IMPORTANT: Its possible to add only one datom (e. g.: only :product/name)
-;(defn save-product-only-name [product-document]
-;  (let [result @(d/transact datomic-config/conn
-;                            [{:db/id         #db/id[:db.part/user]
-;                              :product/name  (product-document/get-name product-document)}])]
-;    result))
-;
-;; In this case: error: if a datom is not part of an entity, its only not add it in the save operation
-;(defn save-product-only-name-error [product-document]
-;  (let [result @(d/transact datomic-config/conn
-;                            [{:db/id         #db/id[:db.part/user]
-;                              :product/name  (product-document/get-name product-document)
-;                              :product/slug  nil}])]
-
-
-; IMPORTANT: d/transact is an async operation in clojure
-; WITH @: SYNC
-; WITHOUT @: ASYNC (like all futures in clojure)
-
-; getting IDS:
-; considering partition, etc. other way: not considering partition ;temp-ids-v1 (val (first (:tempids result)))
-
+(defn add-product-id [product-document]
+  (map-utils/add-if-not-nil product-document :product/id (UUID/randomUUID)))
 
 (defn save [product-document]
-  (let [temp-id             #db/id[:db.part/user]
-        product-document-id (assoc product-document :db/id temp-id)
-        result              @(d/transact (datomic-config/get-db) [product-document-id])
-        resolved-id         (d/resolve-tempid (d/db (datomic-config/get-db)) (:tempids result) temp-id)]
-    (assoc product-document :product/id resolved-id)))
+  (let [product-document-id (add-product-id product-document)]
+    @(d/transact (datomic-config/get-db) [product-document-id])
+    product-document-id))
 
 (defn find-product-by-name [name]
   (d/q '[:find ?name ?slug ?price
@@ -44,8 +23,7 @@
          [?e :product/price ?price]]
        (d/db (datomic-config/get-db)) name))
 
-; Reference by key
-(defn find-by-id [id]
+(defn find-by-bd-id [id]
   (as-> id $
         (d/q '[:find (pull ?e [:product/name :product/slug :product/price])
                :in $ ?id
@@ -53,31 +31,62 @@
                [?e :product/name]
                [(= ?e ?id)]]
              (d/db (datomic-config/get-db)) $)
-        (first $)
-        (first $)
+        (ffirst $)
         (assoc $ :product/id id)))
 
-; Updates: we must use db/add
-(defn update [product-document]
+(defn find-by-bd-id-v2 [product-id]
+  (let [response (d/pull (datomic-config/get-db) '[*] product-id)]
+    response))
+
+;(d/pull db '[:usuario/data-de-nascimento :usuario/cidade] [:usuario/id ?usuario_id])
+
+ ;for other attributes as `:db/unique      :db.unique/identity`
+(defn find-by-product-id [product-id]
+  (let [response (d/pull (d/db (datomic-config/get-db)) '[*] [:product/id product-id])]
+    (println response)
+    response))
+
+;; nao pode assoc
+;(defn find-by-product-id [id]
+;  (as-> id $
+;        (d/q '[:find (pull ?e [:product/name :product/slug :product/price])
+;               :in $ ?product-id
+;               :where
+;               [?e :product/id ?product-id]]
+;             (d/db (datomic-config/get-db)) $)
+;        (ffirst $)
+;        (assoc $ :product/id id)))
+
+;(defn find-by-product-id [product-id]
+;  (let [db (datomic-config/get-db)
+;        product-eid [:product/id product-id]
+;        response (d/pull db '[*] product-eid)]
+;    (println "Response:" response)
+;    response))
+
+
+(defn fn-add-property-executor [id property-key]
+  (fn [value]
+    [:db/add id property-key value]))
+
+(defn build-update-adds [id product-document]
+  (let [base-inputs [[:db/add id :product/id (documents.product/get-id product-document)]
+                     [:db/add id :product/name (documents.product/get-name product-document)]
+                     [:db/add id :product/slug (documents.product/get-slug product-document)]
+                     [:db/add id :product/price (documents.product/get-price product-document)]
+                     ]
+        keywords    (map (fn-add-property-executor id :product/keyword) (documents.product/get-keywords product-document))
+        inputs      (vec (concat base-inputs keywords))]
+    inputs))
+
+; IMPORTANT: Cardinality:many: add the different (dont remove others)
+(defn update-v1 [product-document]
   (let [id (get product-document :product/id)]
     @(d/transact
       (datomic-config/get-db)
-      [[:db/add id :product/name (documents.product/get-name product-document)]
-       [:db/add id :product/slug (documents.product/get-slug product-document)]
-       [:db/add id :product/price (documents.product/get-price product-document)]
-       ])
+      (build-update-adds id product-document))
     product-document))
 
-
-
-;(defn query-with-pagination
-;  [db {:keys [offset limit] :or {offset 0 limit 10}}]
-;  (let [query '[:find ?e ?name ?price
-;                :in $ ?offset ?limit
-;                :where
-;                [?e :product/name ?name]
-;                [?e :product/price ?price]]
-;        result (->> (d/q query db offset limit)
-;                    (drop offset)
-;                    (take limit))]
-;    result))
+(defn update [product-document]
+  @(d/transact (datomic-config/get-db) [product-document])
+  product-document)

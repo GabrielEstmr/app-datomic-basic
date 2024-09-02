@@ -50,7 +50,7 @@
 
 (defn find-product-by-id-handler [id]
   (let [usecaseFindProductByIdProduct (:usecaseFindProductByIdProduct (usecase-beans/get-beans))
-        product                         (usecaseFindProductByIdProduct (Long/parseLong id))
+        product                         (usecaseFindProductByIdProduct id)
         response-body                   (json/write-str (product-response/create-product-response product))]
     (-> (response/response response-body)
         (response/status 200)

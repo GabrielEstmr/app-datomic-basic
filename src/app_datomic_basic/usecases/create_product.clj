@@ -2,5 +2,5 @@
 
 (defn execute [productDatabaseGateway]
   (fn [product]
-    (let [saved-product (.save productDatabaseGateway product)]
+    (let [saved-product   (.save productDatabaseGateway product)]
       saved-product)))

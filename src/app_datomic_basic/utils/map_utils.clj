@@ -5,5 +5,6 @@
     (get map-value key nil)))
 
 (defn add-if-not-nil [m key value]
-  (when (some? value)
-    (assoc m key value)))
+  (if (some? value)
+    (assoc m key value)
+    m))

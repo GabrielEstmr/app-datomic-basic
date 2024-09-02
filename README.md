@@ -57,5 +57,74 @@ Ou seja, ao transacionarmos 4 produtos ao mesmo tempo, se ocorrer algum erro no 
 Essa característica transacional de fazer "ou tudo ou nada" é chamada de Atomicidade: se uma parte da transação falhar,
 a transação toda falha e nenhuma mudança é feita no BD.
 
+(IMPORTANT: NÂO TEM ORDEM no escopo de varias transacoes)
 
-(IMPORTANT: NÂO TEM ORDEM)
+### Optimization:
+
+- Order: by where clause
+- filter the more restrictive first (to limit data) (there is no action plan under a query as the SQL databases)
+
+```clojure
+(defn find-product-by-name [name]
+  (d/q '[:find ?name ?slug ?price
+         :in $ ?name
+         :where
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
+       (d/db (datomic-config/get-db)) name))
+```
+
+### Query with pagination
+
+```clojure
+(defn query-with-pagination
+  [db {:keys [offset limit] :or {offset 0 limit 10}}]
+  (let [query  '[:find ?e ?name ?price
+                 :in $ ?offset ?limit
+                 :where
+                 [?e :product/name ?name]
+                 [?e :product/price ?price]]
+        result (->> (d/q query db offset limit)
+                    (drop offset)
+                    (take limit))]
+    result))
+```
+
+### Updates:
+
+Must use db/add by attributes
+
+```clojure
+(defn update [product-document]
+  (let [id (get product-document :product/id)]
+    @(d/transact
+      (datomic-config/get-db)
+      [[:db/add id :product/name (documents.product/get-name product-document)]
+       [:db/add id :product/slug (documents.product/get-slug product-document)]
+       [:db/add id :product/price (documents.product/get-price product-document)]
+       ])
+    product-document))
+```
+
+### IMPORTANT: Cardinality:many: add the different (dont remove others)
+
+- to remove: db/retract only
+
+### Pure Pull:
+
+```clojure
+(defn find-by-bd-id-v2 [product-id]
+  (let [response (d/pull (datomic-config/get-db) '[*] product-id)]
+    response))
+
+; for other attributes as `:db/unique      :db.unique/identity`
+(defn find-by-product-id [product-id]
+  (let [response (d/pull (datomic-config/get-db) '[*] [:product/id product-id])]
+    response))
+```
+
+### Important:
+
+Using UUID as attribute of an entity, we can use this property to update the datons of a property since a db/transact
+with the same UUID lead to retract+ add the values of the others attributes

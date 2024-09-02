@@ -1,7 +1,8 @@
 (ns app-datomic-basic.gateways.datomic.product-database-gateway
   (:require [app-datomic-basic.gateways.product-database-gateway :as product-database-gateway]
             [app-datomic-basic.gateways.datomic.repository.product-repository :as product-repository]
-            [app-datomic-basic.gateways.datomic.documents.product :as product-document]))
+            [app-datomic-basic.gateways.datomic.documents.product :as product-document]
+            [app-datomic-basic.utils.uuid-utils :as uuid-utils]))
 
 (defn save-impl [product]
   (let [product-doc       (product-document/create-product-document product)
@@ -21,16 +22,16 @@
       (product-document/to-domain product-document))))
 
 (defn find-product-by-id-impl [id]
-  (let [product-document (product-repository/find-by-id id)]
+  (let [product-document (product-repository/find-by-product-id (uuid-utils/string-to-uuid id))]
     (when product-document
       (product-document/to-domain product-document))))
 
 (defrecord ProductDatabaseGatewayImpl []
   product-database-gateway/ProductDatabaseGateway
-  (save [_ account]
-    (save-impl account))
-  (update [_ account]
-    (update-impl account))
+  (save [_ product]
+    (save-impl product))
+  (update [_ product]
+    (update-impl product))
   (findByName [_ name]
     (find-product-by-name-impl name))
   (findById [_ id]
