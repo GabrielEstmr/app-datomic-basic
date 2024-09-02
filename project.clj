@@ -8,12 +8,22 @@
                  [org.slf4j/slf4j-simple "1.7.32"]
                  [org.postgresql/postgresql "42.7.4"]
                  [com.bhauman/rebel-readline "0.1.4"]
-                 ;[org.clojure/java.jdbc "0.7.12"]
-
-                 ;[com.datomic/datomic-pro "1.7.32"] ;; Adjust version as needed
-                 ;[com.datomic/client-pro "1.0.83"] ;; For client API
-                 ]
+                 [ring/ring-core "1.9.4"]
+                 [ring/ring-jetty-adapter "1.9.4"]
+                 [ring/ring-defaults "0.3.3"]
+                 [ring/ring-json "0.5.0"]
+                 [compojure "1.6.2"]
+                 [ch.qos.logback/logback-classic "1.2.3"]
+                 [http-kit "2.3.0"]
+                 [org.clojure/data.json "2.4.0"]
+                 [org.clojure/tools.logging "1.2.4"]
+                 [ring-cors "0.1.13"]]
+  :plugins [[lein-cloverage "1.2.4"]]
+  :java-source-paths ["src/app_datomic_basic/java"]
   :main ^:skip-aot app-datomic-basic.core
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all
-                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
+  :profiles {:uberjar   {:aot      :all
+                         :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
+             :cloverage {
+                         :cloverage {:ns-exclude-regex "^clojure-general-ms\\.(gateways|configs)\\..*"}}}
+  :prep-tasks ["javac" "compile"])

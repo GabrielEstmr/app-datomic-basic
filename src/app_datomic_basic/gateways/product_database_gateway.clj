@@ -1,6 +1,7 @@
 (ns app-datomic-basic.gateways.product-database-gateway)
 
-
 (defprotocol ProductDatabaseGateway
   (save [this product])
-  (find-product-by-name [this name]))
+  (update [this product])
+  (findByName [this name])
+  (findById [this id]))
