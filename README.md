@@ -147,7 +147,7 @@ with the same UUID lead to retract+ add the values of the others attributes
 ```
 
 - Create product with reference to already created category
-  - Note that is different to add uuid directly to :product/category
+    - Note that is different to add uuid directly to :product/category
 
 ```clojure
 (defn save [product-document]
@@ -159,4 +159,54 @@ with the same UUID lead to retract+ add the values of the others attributes
                                            :product/category {:category/id "uuid"}
                                            }])
     product-document-id))
+```
+
+### Nested QUERIES:
+
+- Queries under queries to have access in database once
+- Atomic find (two finds can lead in inconsistency)
+
+```clojure
+(defn todos-os-produtos-mais-caros [db]
+  (d/q '[:find (pull ?produto [*])
+         :where [(q '[:find (max ?preco)
+                      :where [_ :produto/preco ?preco]]
+                    $) [[?preco]]]
+         [?produto :produto/preco ?preco]]
+       db))
+```
+
+- Transactions:
+  - Multiples maps in d/transact or multiple db/add for the same entity: same transaction
+  - We can add attributes in the Transaction Entity
+
+```clojure
+(let [computador (model/novo-produto "Computador Novo", "/computador-novo", 2500.10M)
+      celular (model/novo-produto "Celular Caro", "/celular", 888888.10M)
+      calculadora {:produto/nome "Calculadora com 4 operações"}
+      celular-barato (model/novo-produto "Celular Barato", "/celular-barato", 0.1M)]
+  (pprint @(d/transact conn [computador, celular, calculadora, celular-barato])))
+```
+
+```clojure
+(defn build-update-adds [id product-document]
+  (let [base-inputs [[:db/add id :product/id (documents.product/get-id product-document)]
+                     [:db/add id :product/name (documents.product/get-name product-document)]
+                     [:db/add id :product/slug (documents.product/get-slug product-document)]
+                     [:db/add id :product/price (documents.product/get-price product-document)]
+                     ]
+        keywords    (map (fn-add-property-executor id :product/keyword) (documents.product/get-keywords product-document))
+        inputs      (vec (concat base-inputs keywords))]
+    inputs))
+```
+
+Adding attributes in Transaction Entity:
+
+```clojure
+(defn todos-os-produtos-do-ip [db ip]
+  (d/q '[:find (pull ?produto [*])
+         :in $ ?ip-buscado
+         :where [?transacao :tx-data/ip ?ip-buscado]
+                [?produto :produto/id _ ?transacao]]
+       db ip))
 ```
