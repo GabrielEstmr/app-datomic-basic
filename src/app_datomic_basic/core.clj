@@ -6,9 +6,12 @@
    [compojure.core :refer :all]
    [ring.adapter.jetty :refer [run-jetty]]
    [ring.middleware.json :refer [wrap-json-response]]
-
+   [schema.core :as s]
    )
   (:gen-class))
+
+
+(s/set-fn-validation! true)
 
 
 (def app

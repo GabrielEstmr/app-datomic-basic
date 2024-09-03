@@ -1,5 +1,10 @@
 (ns app-datomic-basic.domain.category
-  (:require [app-datomic-basic.utils.map-utils :as map-utils]))
+  (:require [app-datomic-basic.utils.map-utils :as map-utils]
+            [schema.core :as s]))
+
+(def Category
+  {(s/optional-key :id)   s/Str
+   (s/optional-key :name) s/Str})
 
 (defn create-category-all-args
   ([id]

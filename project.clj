@@ -17,7 +17,8 @@
                  [http-kit "2.3.0"]
                  [org.clojure/data.json "2.4.0"]
                  [org.clojure/tools.logging "1.2.4"]
-                 [ring-cors "0.1.13"]]
+                 [ring-cors "0.1.13"]
+                 [prismatic/schema "1.4.1"]]
   :plugins [[lein-cloverage "1.2.4"]]
   :java-source-paths ["src/app_datomic_basic/java"]
   :main ^:skip-aot app-datomic-basic.core

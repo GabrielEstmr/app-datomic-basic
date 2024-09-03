@@ -177,13 +177,13 @@ with the same UUID lead to retract+ add the values of the others attributes
 ```
 
 - Transactions:
-  - Multiples maps in d/transact or multiple db/add for the same entity: same transaction
-  - We can add attributes in the Transaction Entity
+    - Multiples maps in d/transact or multiple db/add for the same entity: same transaction
+    - We can add attributes in the Transaction Entity
 
 ```clojure
-(let [computador (model/novo-produto "Computador Novo", "/computador-novo", 2500.10M)
-      celular (model/novo-produto "Celular Caro", "/celular", 888888.10M)
-      calculadora {:produto/nome "Calculadora com 4 operações"}
+(let [computador     (model/novo-produto "Computador Novo", "/computador-novo", 2500.10M)
+      celular        (model/novo-produto "Celular Caro", "/celular", 888888.10M)
+      calculadora    {:produto/nome "Calculadora com 4 operações"}
       celular-barato (model/novo-produto "Celular Barato", "/celular-barato", 0.1M)]
   (pprint @(d/transact conn [computador, celular, calculadora, celular-barato])))
 ```
@@ -207,6 +207,71 @@ Adding attributes in Transaction Entity:
   (d/q '[:find (pull ?produto [*])
          :in $ ?ip-buscado
          :where [?transacao :tx-data/ip ?ip-buscado]
-                [?produto :produto/id _ ?transacao]]
+         [?produto :produto/id _ ?transacao]]
        db ip))
+```
+
+### Partial Updates:
+
+As in Mongodb: update only UUID + Prop que queremos fazer o update (não é thread safe)
+
+#### Find Specs:
+
+- retorna uma coleção de listas com 2 valores:  `:find ?nome ?preco`
+- retorna uma coleção de mapas                  `:find (pull ?produto [*])`
+- retorna diversos nomes em uma coleção         `:find [?nome ...]`
+- retorna um único nome                         `:find ?nome .`
+
+### Rules
+
+Create rules to use it in multiples queries.
+
+We can create more than one rule with the same name to made a OR logic 
+- [or-logic](https://cursos.alura.com.br/course/datomic-schemas-regras/task/63357)
+
+- Before Rules:
+
+```clojure
+(defn find-product-by-name [name]
+  (d/q '[:find ?name ?slug ?price
+         :in $ ?name
+         :where
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
+       (d/db (datomic-config/get-db)) name))
+```
+
+- After rules:
+
+```clojure
+(def rules
+  '[
+    [(filter-product-by-name ?e ?name)
+     [?e :product/name ?name]]
+    ])
+
+(defn find-product-by-name [name]
+  (d/q '[:find ?name ?slug ?price
+         :in $ % ?name
+         :where
+         (filter-product-by-name ?e ?name)                          ;não poe conchetes
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
+       (d/db (datomic-config/get-db)) rules name))
+```
+
+### Collection Bindings as Inputs:
+
+To be able to filter by multiple values by using `[?property...]` (the same as pull returns)
+
+```clojure
+(defn find-product-by-name [name]
+  (d/q '[:find ?name ?slug ?price
+         :in $ [?name...]
+         :where
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
+       (d/db (datomic-config/get-db)) name))
 ```

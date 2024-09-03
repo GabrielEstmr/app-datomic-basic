@@ -14,15 +14,6 @@
     @(d/transact (datomic-config/get-db) [product-document-id])
     product-document-id))
 
-(defn find-product-by-name [name]
-  (d/q '[:find ?name ?slug ?price
-         :in $ ?name
-         :where
-         [?e :product/name ?name]
-         [?e :product/slug ?slug]
-         [?e :product/price ?price]]
-       (d/db (datomic-config/get-db)) name))
-
 (defn find-by-product-id [id]
   (let [response (d/q '[:find (pull ?product [* {:product/category [*]}])
                         :in $ ?id
@@ -32,3 +23,12 @@
 (defn update [product-document]
   @(d/transact (datomic-config/get-db) [product-document])
   product-document)
+
+(defn find-product-by-name [name]
+  (d/q '[:find ?name ?slug ?price
+         :in $ ?name
+         :where
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
+       (d/db (datomic-config/get-db)) name))
