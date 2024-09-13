@@ -9,10 +9,37 @@
     @(d/transact (datomic-config/get-db) [product-document-id])
     product-document-id))
 
+; [{},{},{}]
+; [{},{},{}]
 (defn find-by-product-id [id]
-  (let [response (d/q '[:find (pull ?product [* {:product/category [*]}])
+  (let [
+        response0 (d/q '[:find [?product ?name]
+                         :where
+                                [?product :product/name "TestProduct"]
+                                [?product :product/name ?name]
+                                [?product :product/id ?product]] (d/db (datomic-config/get-db)))
+
+        ; [[{}] [{}] [{}]]
+        response (d/q '[:find (pull ?product [* {:product/category [*]}])
                         :in $ ?id
-                        :where [?product :product/id ?id]] (d/db (datomic-config/get-db)) id)]
+                        :where [?product :product/id ?id]] (d/db (datomic-config/get-db)) id)
+
+        ; [{}]
+        response2 (d/q '[:find [(pull ?product [* {:product/category [*]}])]
+                         :in $ ?id
+                         :where [?product :product/id ?id]] (d/db (datomic-config/get-db)) id)
+
+        ; [{} {} {} {}]
+        response3 (d/q '[:find [(pull ?product [* {:product/category [*]}]) ...]
+                         :in $ ?id
+                         :where [?product :product/name "TestProduct"]] (d/db (datomic-config/get-db)) id)
+
+        ; [123123 "name1" 123123 "name2" 123123 "name3"]
+        response6 (d/q '[:find [?product ...]
+                         :in $ ?id
+                         :where [?product :product/id ?id]] (d/db (datomic-config/get-db)) id)
+
+        ]
     (ffirst response)))
 
 (defn update [product-document]
@@ -27,3 +54,12 @@
          [?e :product/slug ?slug]
          [?e :product/price ?price]]
        (d/db (datomic-config/get-db)) name))
+
+
+
+
+(defn find-by-product-id-v2 [id]
+  (let [response (d/q '[:find [(pull ?product [* {:product/category [*]}])]
+                        :in $ ?id
+                        :where [?product :product/id ?id]] (d/db (datomic-config/get-db)) id)]
+    (ffirst response)))
