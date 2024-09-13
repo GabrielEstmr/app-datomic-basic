@@ -1,4 +1,4 @@
-(ns app-datomic-basic.gateways.datomic.repository.product-repo-backup
+(ns app-datomic-basic.gateways.datomic.repository.backup.product-repo-backup
   (:require
    [datomic.api :as d]
    [app-datomic-basic.utils.map-utils :as map-utils]

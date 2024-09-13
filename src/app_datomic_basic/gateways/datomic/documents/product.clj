@@ -23,7 +23,7 @@
     :db/doc         "A description of the product"}
 
    {:db/ident       :product/price
-    :db/valueType   :db.type/double
+    :db/valueType   :db.type/bigdec
     :db/cardinality :db.cardinality/one
     :db/doc         "The price of the product"}
 

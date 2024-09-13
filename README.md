@@ -59,6 +59,53 @@ a transação toda falha e nenhuma mudança é feita no BD.
 
 (IMPORTANT: NÂO TEM ORDEM no escopo de varias transacoes)
 
+### Find Specs in Datomic
+
+As default, the datomic returns values as tuples as following:
+
+For:
+```clojure
+(defn find-product-by-name [name]
+  (d/q '[:find ?name
+         :in $ ?name
+         :where
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
+       (d/db (datomic-config/get-db)) name))
+
+[["name"] ["name"] ["name"] ["name"]]
+```
+
+Pull: to return as `MAP`
+```clojure
+(defn find-product-by-name [name]
+  (d/q '[:find (pull ?name [*])
+         :in $ ?name
+         :where
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
+       (d/db (datomic-config/get-db)) name))
+
+[[{:name "name"}] [{:name "name"}] [{:name "name"}] [{:name "name"}]]
+```
+
+To return without brakets: (put brakets/inverse)
+```clojure
+(defn find-product-by-name [name]
+  (d/q '[:find [(pull ?name [*])]
+         :in $ ?name
+         :where
+         [?e :product/name ?name]
+         [?e :product/slug ?slug]
+         [?e :product/price ?price]]
+       (d/db (datomic-config/get-db)) name))
+
+[{:name "name"} {:name "name"} {:name "name"} {:name "name"}]
+```
+
+
 ### Optimization:
 
 - Order: by where clause
@@ -226,7 +273,8 @@ As in Mongodb: update only UUID + Prop que queremos fazer o update (não é thre
 
 Create rules to use it in multiples queries.
 
-We can create more than one rule with the same name to made a OR logic 
+We can create more than one rule with the same name to made a OR logic
+
 - [or-logic](https://cursos.alura.com.br/course/datomic-schemas-regras/task/63357)
 
 - Before Rules:
@@ -268,10 +316,23 @@ To be able to filter by multiple values by using `[?property...]` (the same as p
 ```clojure
 (defn find-product-by-name [name]
   (d/q '[:find ?name ?slug ?price
-         :in $ [?name...]
+         :in $ [?name ...] ?other-parameter ; in can come after
          :where
          [?e :product/name ?name]
          [?e :product/slug ?slug]
          [?e :product/price ?price]]
        (d/db (datomic-config/get-db)) name))
+```
+
+### Atomic Transactions in Datomic
+
+All that in inside the `d/transact` in atomic in clojure
+
+By Versioning control
+
+- Uses the compare and swap function
+
+```clojure
+
+
 ```

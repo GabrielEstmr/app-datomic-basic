@@ -5,4 +5,4 @@
 (defn to-domain [product-request]
   (let [{:keys [name slug price keywords]} product-request
         {:keys [id]} (get product-request :category)]
-    (product/create-product-all-args nil name slug price keywords (category/create-category-all-args id))))
+    (product/create-product-all-args nil name slug (bigdec price) keywords (category/create-category-all-args id))))

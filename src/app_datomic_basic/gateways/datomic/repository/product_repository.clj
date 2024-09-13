@@ -1,16 +1,11 @@
 (ns app-datomic-basic.gateways.datomic.repository.product-repository
   (:require
    [datomic.api :as d]
-   [app-datomic-basic.utils.map-utils :as map-utils]
    [app-datomic-basic.configs.datomic :as datomic-config]
-   [app-datomic-basic.gateways.datomic.documents.product :as documents.product])
-  (:import [java.util UUID]))
-
-(defn add-product-id [product-document]
-  (map-utils/add-if-not-nil product-document :product/id (UUID/randomUUID)))
+   [app-datomic-basic.utils.uuid-utils :as uuid-utils]))
 
 (defn save [product-document]
-  (let [product-document-id (add-product-id product-document)]
+  (let [product-document-id (uuid-utils/assoc-uuid product-document :product/id)]
     @(d/transact (datomic-config/get-db) [product-document-id])
     product-document-id))
 
