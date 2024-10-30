@@ -12,17 +12,16 @@
    :user    user/User})
 
 
-(defn create-transaction-all-args [id type value account user]
+(defn create-transaction-all-args [id type value account]
   (let [transaction {}]
     (-> transaction
         (map-utils/add-if-not-nil :id id)
         (map-utils/add-if-not-nil :type type)
         (map-utils/add-if-not-nil :value value)
-        (map-utils/add-if-not-nil :account account)
-        (map-utils/add-if-not-nil :user user))))
+        (map-utils/add-if-not-nil :account account))))
 
-(defn create-new-transaction [type value account user]
-  (create-transaction-all-args nil type value account user))
+(defn create-new-transaction [type value account]
+  (create-transaction-all-args nil type value account))
 
 (defn get-id [transaction]
   (map-utils/get-when transaction :id))
@@ -35,6 +34,3 @@
 
 (defn get-account [transaction]
   (map-utils/get-when transaction :account))
-
-(defn get-user [transaction]
-  (map-utils/get-when transaction :user))

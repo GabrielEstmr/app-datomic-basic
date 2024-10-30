@@ -3,11 +3,21 @@
             [app-datomic-basic.domain.user :as user]
             [schema.core :as s]))
 
-(def Account
-  {:id      s/Str
-   :bank    s/Str
-   :balance Long
-   :user    user/User})
+(def account-skeleton
+  {:id      {:schema   s/Str
+             :doc      "Accounts' id"
+             :required true}
+   :bank    {:schema   (s/maybe s/Str)
+             :doc      "Accounts' id"
+             :required false}
+   :balance {:schema   Long
+             :doc      "Accounts' balance"
+             :required false}
+   :user    {:schema   user/User
+             :doc      "Accounts' user"
+             :required false}})
+
+(def Account account-skeleton)
 
 (defn create-account-all-args [id bank balance user]
   (let [account {}]
