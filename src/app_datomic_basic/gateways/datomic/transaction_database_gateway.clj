@@ -2,11 +2,15 @@
   (:require [app-datomic-basic.gateways.transaction-database-gateway :as transaction-database-gateway]
             [app-datomic-basic.gateways.datomic.repository.transaction-repository :as transaction-repository]
             [app-datomic-basic.gateways.datomic.documents.transaction :as transaction-document]
+            [app-datomic-basic.gateways.datomic.documents.account :as account-document]
             [app-datomic-basic.utils.uuid-utils :as uuid-utils]))
 
-(defn save-impl [transaction]
+(defn save-impl
+  [transaction
+   account]
   (let [transaction-doc       (transaction-document/create-transaction-document transaction)
-        saved-transaction-doc (transaction-repository/save transaction-doc)]
+        account-doc           (account-document/create-account-document account)
+        saved-transaction-doc (transaction-repository/save transaction-doc account-doc)]
     (println saved-transaction-doc)
     (when saved-transaction-doc
       (transaction-document/to-domain saved-transaction-doc))))
@@ -18,7 +22,7 @@
 
 (defrecord TransactionDatabaseGatewayImpl []
   transaction-database-gateway/TransactionDatabaseGateway
-  (save [_ transaction]
-    (save-impl transaction))
+  (save [_ transaction account]
+    (save-impl transaction account))
   (findById [_ id]
     (find-transaction-by-id-impl id)))

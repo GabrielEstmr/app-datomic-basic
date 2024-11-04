@@ -3,17 +3,19 @@
    [app-datomic-basic.domain.account :as account]
    [app-datomic-basic.utils.map-utils :as map-utils]))
 
-(defn create-account-response-all-args [id bank balance user]
+(defn create-account-response-all-args [id bank balance user version]
   (let [account-resource-base {}]
     (-> account-resource-base
         (map-utils/add-if-not-nil :id id)
         (map-utils/add-if-not-nil :bank bank)
         (map-utils/add-if-not-nil :balance balance)
-        (map-utils/add-if-not-nil :user user))))
+        (map-utils/add-if-not-nil :user user)
+        (map-utils/add-if-not-nil :version version))))
 
 (defn create-account-response [account]
   (create-account-response-all-args
    (account/get-id account)
    (account/get-bank account)
    (account/get-balance account)
-   (account/get-user account)))
+   (account/get-user account)
+   (account/get-version account)))

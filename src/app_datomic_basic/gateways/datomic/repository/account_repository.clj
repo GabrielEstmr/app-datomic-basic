@@ -4,7 +4,8 @@
    [app-datomic-basic.configs.datomic :as datomic-config]
    [app-datomic-basic.utils.uuid-utils :as uuid-utils]))
 
-(defn save [account-document]
+(defn save
+  [account-document]
   (let [account-document-id (uuid-utils/assoc-uuid account-document :account/id)]
     @(d/transact (datomic-config/get-db) [account-document-id])
     account-document-id))

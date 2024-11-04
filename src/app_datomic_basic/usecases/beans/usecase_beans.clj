@@ -3,6 +3,7 @@
             [app-datomic-basic.gateways.datomic.category-database-gateway :as categoryDatabaseGateway]
             [app-datomic-basic.gateways.datomic.account-database-gateway :as accountDatabaseGateway]
             [app-datomic-basic.gateways.datomic.user-database-gateway :as userDatabaseGateway]
+
             [app-datomic-basic.gateways.datomic.transaction-database-gateway :as transactionDatabaseGateway]
             [app-datomic-basic.usecases.create-product :as usecaseCreateProduct]
             [app-datomic-basic.usecases.update-product :as usecaseUpdateProduct]
@@ -15,6 +16,7 @@
             [app-datomic-basic.usecases.create-user :as usecaseCreateUser]
             [app-datomic-basic.usecases.find-account-by-id :as usecaseFindAccountById]
             [app-datomic-basic.usecases.find-transaction-by-id :as usecaseFindTransactionById]
+            [app-datomic-basic.usecases.find-user-by-id :as usecaseFindUserById]
             [app-datomic-basic.usecases.find-user-by-id :as usecaseFindUserById]))
 
 (defn get-beans []
@@ -23,6 +25,7 @@
         accountDatabaseGateway          (accountDatabaseGateway/->AccountDatabaseGatewayImpl)
         userDatabaseGateway             (userDatabaseGateway/->UserDatabaseGatewayImpl)
         transactionDatabaseGateway      (transactionDatabaseGateway/->TransactionDatabaseGatewayImpl)
+
         usecaseCreateCategory           (usecaseCreateCategory/execute categoryDatabaseGateway)
         usecaseFindCategoryByIdCategory (usecaseFindCategoryByIdCategory/execute categoryDatabaseGateway)
         usecaseCreateProduct            (usecaseCreateProduct/execute productDatabaseGateway)
@@ -30,7 +33,7 @@
         usecaseFindProductByNameProduct (usecaseFindProductByNameProduct/execute productDatabaseGateway)
         usecaseFindProductByIdProduct   (usecaseFindProductByIdProduct/execute productDatabaseGateway)
         usecaseCreateAccount            (usecaseCreateAccount/execute accountDatabaseGateway)
-        usecaseCreateTransaction        (usecaseCreateTransaction/execute transactionDatabaseGateway)
+        usecaseCreateTransaction        (usecaseCreateTransaction/execute transactionDatabaseGateway accountDatabaseGateway)
         usecaseCreateUser               (usecaseCreateUser/execute userDatabaseGateway)
         usecaseFindAccountById          (usecaseFindAccountById/execute accountDatabaseGateway)
         usecaseFindTransactionById      (usecaseFindTransactionById/execute transactionDatabaseGateway)

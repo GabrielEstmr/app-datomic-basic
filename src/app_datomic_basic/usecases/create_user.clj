@@ -2,5 +2,5 @@
 
 (defn execute [userDatabaseGateway]
   (fn [user]
-    (let [saved-user   (.save userDatabaseGateway user)]
+    (let [saved-user (.save userDatabaseGateway user)]
       saved-user)))

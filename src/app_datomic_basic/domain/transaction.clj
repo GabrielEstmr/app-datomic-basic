@@ -1,6 +1,6 @@
 (ns app-datomic-basic.domain.transaction
   (:require [app-datomic-basic.utils.map-utils :as map-utils]
-            [app-datomic-basic.domain.account :as account]
+            [app-datomic-basic.domain.account :as domain.account]
             [app-datomic-basic.domain.user :as user]
             [schema.core :as s]))
 
@@ -8,7 +8,7 @@
   {:id      s/Str
    :type    s/Str
    :value   s/Str
-   :account account/Account                                 ;java.utils.UUID
+   :account domain.account/Account                                 ;java.utils.UUID
    :user    user/User})
 
 
@@ -34,3 +34,6 @@
 
 (defn get-account [transaction]
   (map-utils/get-when transaction :account))
+
+(defn is-add-transaction [transaction]
+  (= "ADD" (get-type transaction)))

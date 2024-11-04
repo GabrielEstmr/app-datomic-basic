@@ -12,6 +12,8 @@
 (defn get-db []
   (d/connect db-uri))
 
+;@ in this context turns d/transact syncronous
+; TODO: change from schema to ClassLikeVariable
 (defn apply-schemas []
   (let [db (get-db)]
     @(d/transact db product-document/schema)
